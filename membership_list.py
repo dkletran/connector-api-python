@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This script list items in a Google Cloud Search datasource using 
-the Cloud Search API.
+"""This script list groups in a Google Cloud identitysource using 
+the Cloud Identity API.
 
 
 Prerequisites:
- - Google Cloud Search enable on the gSuite organization
- - Created a Google Cloud Third-party data sources ID
+ - Google Cloud Identity enable on the gSuite organization
+ - Created a Google Cloud Third-party identity sources ID
  - GCP project
- - Google Cloud Search API enabled in the project
+ - Google Cloud Identity API enabled in the project
  - GCS bucket (Publicly readable)
  - GCP service account
 
@@ -34,12 +34,12 @@ You can easily install them with virtualenv and pip by running these commands:
 You can than run the script as follow:
     python item_list.py \
     --service_account_file /PATH/TO/service.json \
-    --datasources YOUR_DATASOURCE_ID 
+    --groups YOUR_GROUPS_ID 
 """
 
 import argparse
 import base64
-import cloudsearch
+import cloudidentity
 import google.oauth2.credentials
 import googleapiclient.http
 import logging
@@ -51,12 +51,12 @@ from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 
 logging.basicConfig(level=logging.INFO)
-LOGGER = logging.getLogger('cloudsearch.item_list')
+LOGGER = logging.getLogger('cloudidentity.group_list')
 
 # Scope grants [CLOUD SEARCH]
-SEARCH_SCOPES = ['https://www.googleapis.com/auth/cloud_search']
-SEARCH_API_SERVICE_NAME = 'cloudsearch'
-SEARCH_API_VERSION = 'v1'
+IDENTITY_SCOPES = ['https://www.googleapis.com/auth/cloud-identity']
+IDENTITY_API_SERVICE_NAME = 'cloudidentity'
+IDENTITY_API_VERSION = 'v1'
 
 
 def get_authenticated_service(service_account_file, scope, service_name, version):
@@ -67,33 +67,33 @@ def get_authenticated_service(service_account_file, scope, service_name, version
 
 
 def main(service_account_file,
-         datasources):
-  LOGGER.info('List documents - START')
+         group_id):
+  LOGGER.info('List members - START')
 
-  service_search = get_authenticated_service(service_account_file,
-                                             SEARCH_SCOPES,
-                                             SEARCH_API_SERVICE_NAME,
-                                             SEARCH_API_VERSION)
+  service_identity = get_authenticated_service(service_account_file,
+                                             IDENTITY_SCOPES,
+                                             IDENTITY_API_SERVICE_NAME,
+                                             IDENTITY_API_VERSION)
 
-  itemService = cloudsearch.ItemsService(service_search, datasources)
+  groupService = cloudidentity.GroupService(service_identity, group_id)
 
-  items = itemService.list()
-  for item in items:
-    LOGGER.info('\n******\n Document: %s \n ID: %s \n Version: %s \n ACL: %s \n******\n' %
-                (item.get("name"), item.get("metadata").get("title"), item.get("version"), item.get('acl')))
-  LOGGER.info('Indexing documents - END')
+  members = groupService.memberships_list(group_id) or []
+  for member in members:
+    LOGGER.info('\n******\n Member: %s \n preferredMemberKey: %s \n******\n' %
+                (member.get("name"), member.get("preferredMemberKey")))
+  LOGGER.info('List members - END')
   return
 
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-      description='Example to parse HTML and send to CloudSearch.')
+      description='Example to parse HTML and send to CloudIdentity.')
   parser.add_argument('--service_account_file', dest='service_account_file',
                       help='File name for the service account.')
-  parser.add_argument('--datasources', dest='datasources',
-                      help='DataSource to update.')
+  parser.add_argument('--group-id', dest='group_id',
+                      help='Identity of the group to list.')
 
   args = parser.parse_args()
 
   main(args.service_account_file,
-       args.datasources)
+       args.group_id)
