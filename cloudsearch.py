@@ -113,7 +113,7 @@ class ItemsService(object):
     results = self.service.indexing().datasources().items().list(
         name=self._get_datasource_name(),
         brief=False,
-        pageSize=10).execute()
+        pageSize=50).execute()
 
     output = []
     while results:
@@ -123,8 +123,8 @@ class ItemsService(object):
         results = self.service.indexing().datasources().items().list(
             name=self._get_datasource_name(),
             pageToken=results.get('nextPageToken'),
-            brief=True,
-            pageSize=10).execute()
+            brief=False,
+            pageSize=50).execute()
       else:
         results = False
     return output
