@@ -79,9 +79,8 @@ def main(service_account_file,
 
   items = itemService.list()
   for item in items:
-    LOGGER.info('\n******\n Document: %s \n ID: %s \n Version: %s\n******\n' %
-                (item.get("name"), item.get("metadata").get("title"), item.get("version")))
-
+    LOGGER.info('\n******\n Document: %s \n ID: %s \n Version: %s \n ACL: %s \n******\n' %
+                (item.get("name"), item.get("metadata").get("title"), item.get("version"), item.get('acl')))
   LOGGER.info('Indexing documents - END')
   return
 
